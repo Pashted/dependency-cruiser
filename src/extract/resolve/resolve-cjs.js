@@ -16,12 +16,16 @@ function addResolutionAttributes(
     lReturnValue.coreModule = true;
   } else {
     try {
-      lReturnValue.resolved = pathToPosix(
-        path.relative(
+      let lModulePath = "";
+      try {
+        lModulePath = path.relative(
           pBaseDirectory,
           resolve(pModuleName, pFileDirectory, pResolveOptions)
-        )
-      );
+        );
+      } catch (pError) {
+        lModulePath = require.resolve(pModuleName);
+      }
+      lReturnValue.resolved = pathToPosix(lModulePath);
       lReturnValue.followable = isFollowable(
         lReturnValue.resolved,
         pResolveOptions
