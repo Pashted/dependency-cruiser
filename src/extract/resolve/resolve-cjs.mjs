@@ -1,8 +1,11 @@
 import { relative } from "node:path";
+import { createRequire } from "node:module";
 import { isFollowable } from "./module-classifiers.mjs";
 import { resolve } from "./resolve.mjs";
 import { isBuiltin } from "./is-built-in.mjs";
 import pathToPosix from "#utl/path-to-posix.mjs";
+
+const require = createRequire(import.meta.url);
 
 function addResolutionAttributes(
   pBaseDirectory,
@@ -16,12 +19,16 @@ function addResolutionAttributes(
     lReturnValue.coreModule = true;
   } else {
     try {
-      lReturnValue.resolved = pathToPosix(
-        relative(
+      let lModulePath = "";
+      try {
+        lModulePath = relative(
           pBaseDirectory,
           resolve(pModuleName, pFileDirectory, pResolveOptions),
-        ),
-      );
+        );
+      } catch (pError) {
+        lModulePath = require.resolve(pModuleName);
+      }
+      lReturnValue.resolved = pathToPosix(lModulePath);
       lReturnValue.followable = isFollowable(
         lReturnValue.resolved,
         pResolveOptions,
